@@ -1,0 +1,266 @@
+<!-- Fruit Market - Single-file HTML/CSS/JS
+     Open this file in VS Code and live preview (or double-click to open in browser).
+     Features:
+     - Responsive product grid
+     - Simple cart (add, remove, update qty)
+     - Search and category filters
+     - Placeholder images (Unsplash)
+     - Beginner-friendly, commented code
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fruit Market - Fresh Fruits Online</title>
+  <style>
+    :root{
+      --bg:#f7fbf7;
+      --card:#ffffff;
+      --accent:#2f855a; /* green */
+      --muted:#6b6b6b;
+      --shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+      --radius:14px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg, #f7fbf7 0%, #ffffff 100%);color:#0f172a}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;gap:16px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:48px;height:48px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:white;font-weight:700}
+    .search{flex:1;max-width:640px}
+    .search input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid #e6e6e6}
+    .main{display:grid;grid-template-columns:1fr 360px;gap:24px;padding:24px}
+    @media (max-width:980px){.main{grid-template-columns:1fr}}
+
+    .hero{background:linear-gradient(90deg, rgba(47,133,90,0.08), rgba(79,70,229,0.02));padding:18px;border-radius:12px;display:flex;align-items:center;gap:18px}
+    .hero img{width:110px;height:110px;border-radius:12px;object-fit:cover}
+    .hero .title{font-size:20px;font-weight:700}
+
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:10px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(47,133,90,0.14)}
+
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+    @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:600px){.grid{grid-template-columns:repeat(1,1fr)}}
+
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+    .card img{width:100%;height:160px;object-fit:cover;border-radius:10px}
+    .meta{display:flex;justify-content:space-between;align-items:center}
+    .meta h3{margin:0;font-size:16px}
+    .price{font-weight:700}
+    .card .actions{display:flex;justify-content:space-between;align-items:center}
+    .add{padding:8px 10px;border-radius:10px;border:none;background:linear-gradient(180deg,var(--accent),#1f6f46);color:white;cursor:pointer}
+
+    /* Cart */
+    .cart{background:linear-gradient(180deg,#ffffff,#fafafc);padding:18px;border-radius:12px;height:fit-content;position:sticky;top:18px;box-shadow:var(--shadow)}
+    .cart h3{margin:0 0 12px 0}
+    .cart .line{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+    .cart .qty{display:flex;gap:6px;align-items:center}
+    .qty button{padding:4px 8px;border-radius:8px;border:1px solid #e6e6e6;background:white;cursor:pointer}
+    .total{display:flex;justify-content:space-between;margin-top:12px;font-weight:700}
+
+    footer{padding:18px;text-align:center;color:var(--muted)}
+
+    /* Minor helpers */
+    .muted{color:var(--muted)}
+    .pill{background:#eef6ee;padding:6px 10px;border-radius:999px;font-weight:600;color:var(--accent)}
+
+    /* Product badge */
+    .badge{position:absolute;background:rgba(47,133,90,0.12);color:var(--accent);padding:6px 8px;border-radius:8px;font-weight:700}
+    .card-wrap{position:relative}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">FM</div>
+      <div>
+        <div style="font-weight:700">Fruit Market</div>
+        <div class="muted" style="font-size:12px">Fresh fruits — delivered fast</div>
+      </div>
+    </div>
+
+    <div class="search">
+      <input id="searchInput" placeholder="Search fruits, e.g. apple, banana..." />
+    </div>
+
+    <div>
+      <button class="btn ghost" id="viewCartBtn">View Cart (<span id="cartCount">0</span>)</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section>
+      <div class="hero">
+        <img src="https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=1f1b6f0b7dc2f2ea2c6d7e3f1f4f8c2a" alt="fruit bowl">
+        <div>
+          <div class="title">Fresh & Organic — locally sourced</div>
+          <div class="muted">Same-day delivery in selected areas. Choose seasonal picks and bundle discounts.</div>
+          <div class="controls">
+            <button class="btn" onclick="filterCategory('all')">All</button>
+            <button class="btn ghost" onclick="filterCategory('citrus')">Citrus</button>
+            <button class="btn ghost" onclick="filterCategory('berries')">Berries</button>
+            <button class="btn ghost" onclick="filterCategory('tropical')">Tropical</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div class="grid" id="productGrid">
+          <!-- Products injected by JS -->
+        </div>
+      </div>
+    </section>
+
+    <aside>
+      <div class="cart" id="cartPanel">
+        <h3>Your Cart</h3>
+        <div id="cartItems">
+          <div class="muted">Cart is empty — add some fruits!</div>
+        </div>
+        <div class="total">
+          <div>Total</div>
+          <div id="cartTotal">₹0.00</div>
+        </div>
+        <button class="btn" id="checkoutBtn" style="width:100%;margin-top:12px">Checkout</button>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    Built for beginners. Edit the file to add more fruits or enable real payments.
+  </footer>
+
+  <script>
+    // Sample product data. In a real app you'd fetch this from a backend.
+    const PRODUCTS = [
+      {id:1,name:'Red Apple (1 kg)',price:120,category:'tropical',img:'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=1f1b6f0b7dc2f2ea2c6d7e3f1f4f8c2a'},
+      {id:2,name:'Banana (dozen)',price:60,category:'tropical',img:'https://images.unsplash.com/photo-1574226516831-e1dff420e37d?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=8a0a9bb2f0b3a9c2a2c5b7e1b8f6d9c4'},
+      {id:3,name:'Orange (1 kg)',price:140,category:'citrus',img:'https://images.unsplash.com/photo-1547516508-4a69a025b8b0?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=777b1e4f2a49d3cf3a5b7f0d2c9fef52'},
+      {id:4,name:'Strawberries (250 g)',price:180,category:'berries',img:'https://images.unsplash.com/photo-1439127982442-1a2f1b94f5b6?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=2b7f6f7d5c5a6a1c2b3d4f5e6a7b8c9d'},
+      {id:5,name:'Mango (1 kg)',price:220,category:'tropical',img:'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=3f6f4c5b2b6f9a8c7d6e5b4a3c2d1e0f'},
+      {id:6,name:'Blueberries (125 g)',price:210,category:'berries',img:'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd1234ef567890abcd1234ef567890'},
+      {id:7,name:'Grapes (500 g)',price:160,category:'berries',img:'https://images.unsplash.com/photo-1571047399553-16c3b8b6b3f9?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=11111111111111111111111111111111'},
+      {id:8,name:'Lemon (250 g)',price:40,category:'citrus',img:'https://images.unsplash.com/photo-1535914254981-b5012eebbd15?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=22222222222222222222222222222222'}
+    ];
+
+    const productGrid = document.getElementById('productGrid');
+    const cartItemsDiv = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const cartCountEl = document.getElementById('cartCount');
+    const searchInput = document.getElementById('searchInput');
+
+    let CART = {};
+
+    function formatCurrency(n){
+      return '₹' + n.toFixed(2);
+    }
+
+    function renderProducts(list = PRODUCTS){
+      productGrid.innerHTML = '';
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card-wrap';
+        card.innerHTML = `
+          <div class="card">
+            <img src="${p.img}" alt="${p.name}" onerror="this.style.opacity=0.9" />
+            <div class="meta">
+              <h3>${p.name}</h3>
+              <div class="price">${formatCurrency(p.price)}</div>
+            </div>
+            <div class="muted" style="font-size:13px">Category: ${p.category}</div>
+            <div class="actions">
+              <div class="pill">Fresh</div>
+              <button class="add" onclick="addToCart(${p.id})">Add</button>
+            </div>
+          </div>
+        `;
+        productGrid.appendChild(card);
+      })
+    }
+
+    function addToCart(id){
+      const p = PRODUCTS.find(x=>x.id===id);
+      if(!p) return;
+      if(!CART[id]) CART[id] = {...p, qty:0};
+      CART[id].qty++;
+      renderCart();
+    }
+
+    function renderCart(){
+      const items = Object.values(CART);
+      cartItemsDiv.innerHTML = '';
+      if(items.length===0){
+        cartItemsDiv.innerHTML = '<div class="muted">Cart is empty — add some fruits!</div>';
+        cartTotalEl.textContent = formatCurrency(0);
+        cartCountEl.textContent = 0;
+        return;
+      }
+      let total = 0;
+      items.forEach(it => {
+        total += it.price * it.qty;
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.innerHTML = `
+          <div style="flex:1">
+            <div style="font-weight:700">${it.name}</div>
+            <div class="muted" style="font-size:13px">${formatCurrency(it.price)} x ${it.qty} = ${formatCurrency(it.price*it.qty)}</div>
+          </div>
+          <div class="qty">
+            <button onclick="decrease(${it.id})">-</button>
+            <div style="min-width:28px;text-align:center">${it.qty}</div>
+            <button onclick="increase(${it.id})">+</button>
+            <button style="margin-left:8px;border:none;background:transparent;cursor:pointer;color:#ef4444" onclick="removeItem(${it.id})">✕</button>
+          </div>
+        `;
+        cartItemsDiv.appendChild(line);
+      })
+      cartTotalEl.textContent = formatCurrency(total);
+      cartCountEl.textContent = items.reduce((s,i)=>s+i.qty,0);
+    }
+
+    function increase(id){ CART[id].qty++; renderCart(); }
+    function decrease(id){ CART[id].qty--; if(CART[id].qty<=0) delete CART[id]; renderCart(); }
+    function removeItem(id){ delete CART[id]; renderCart(); }
+
+    function filterCategory(cat){
+      if(cat==='all') return renderProducts(PRODUCTS);
+      renderProducts(PRODUCTS.filter(p=>p.category===cat));
+    }
+
+    // Search
+    searchInput.addEventListener('input', ()=>{
+      const q = searchInput.value.trim().toLowerCase();
+      if(q==='') return renderProducts(PRODUCTS);
+      renderProducts(PRODUCTS.filter(p=>p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)));
+    });
+
+    // Checkout mock
+    document.getElementById('checkoutBtn').addEventListener('click', ()=>{
+      const items = Object.values(CART);
+      if(items.length===0){ alert('Cart is empty. Add some fruits first!'); return; }
+      const total = items.reduce((s,i)=>s+i.price*i.qty,0);
+      alert('Checkout — total: ' + formatCurrency(total) + '\n\nThis is a demo. Integrate a payment gateway to accept payments.');
+    });
+
+    // View Cart button (mobile)
+    document.getElementById('viewCartBtn').addEventListener('click', ()=>{
+      window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
+    });
+
+    // Initial render
+    renderProducts();
+    renderCart();
+
+    // Expose helpers to window for inline onclick handlers
+    window.addToCart = addToCart;
+    window.filterCategory = filterCategory;
+    window.increase = increase;
+    window.decrease = decrease;
+    window.removeItem = removeItem;
+  </script>
+</body>
+</html>
