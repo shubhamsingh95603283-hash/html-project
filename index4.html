@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Purrfect Pets — Cat Shop</title>
+  <style>
+    :root{--bg:#fffdf6;--card:#ffffff;--accent:#d97706;--muted:#6b7280;--shadow:0 8px 24px rgba(15,23,42,0.06);--radius:12px;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#fffdf6,#ffffff);color:#0f172a}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:white;font-weight:800}
+    .search{flex:1;max-width:720px}
+    .search input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid #eee}
+
+    main{display:grid;grid-template-columns:1fr 360px;gap:20px;padding:20px;max-width:1200px;margin:0 auto}
+    @media(max-width:980px){main{grid-template-columns:1fr}}
+
+    .hero{display:flex;gap:16px;align-items:center;padding:14px;border-radius:12px;background:linear-gradient(90deg, rgba(217,119,6,0.06), rgba(99,102,241,0.02))}
+    .hero img{width:120px;height:120px;object-fit:cover;border-radius:12px}
+    .controls{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:10px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(217,119,6,0.12)}
+
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+    @media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border-radius:12px;padding:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+    .card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+    .meta{display:flex;justify-content:space-between;align-items:center}
+    .price{font-weight:800}
+    .add{padding:8px 10px;border-radius:10px;border:none;background:linear-gradient(180deg,var(--accent),#b45309);color:white;cursor:pointer}
+
+    aside .cart{background:var(--card);padding:16px;border-radius:12px;box-shadow:var(--shadow);position:sticky;top:18px}
+    .cart h3{margin:0 0 12px 0}
+    .line{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    .qty button{padding:4px 8px;border-radius:8px;border:1px solid #eee;background:white;cursor:pointer}
+    .total{display:flex;justify-content:space-between;margin-top:12px;font-weight:800}
+
+    footer{padding:16px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">PP</div>
+      <div>
+        <div style="font-weight:800">Purrfect Pets</div>
+        <div style="font-size:12px;color:var(--muted)">Cat products — toys, food, beds & more</div>
+      </div>
+    </div>
+
+    <div class="search"><input id="searchInput" placeholder="Search products, e.g. toy, bed, food..." /></div>
+
+    <div><button class="btn ghost" id="viewCartBtn">Cart (<span id="cartCount">0</span>)</button></div>
+  </header>
+
+  <main>
+    <section>
+      <div class="hero">
+        <img src="https://images.unsplash.com/photo-1518791841217-8f162f1e1131?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=1" alt="cat">
+        <div>
+          <div style="font-weight:800;font-size:18px">Everything your cat needs — quality & safety first</div>
+          <div style="color:var(--muted);margin-top:6px">Browse categories or use the search. This is a demo storefront — replace images and connect a payment gateway to go live.</div>
+          <div class="controls">
+            <button class="btn" onclick="filterCategory('all')">All</button>
+            <button class="btn ghost" onclick="filterCategory('toys')">Toys</button>
+            <button class="btn ghost" onclick="filterCategory('food')">Food</button>
+            <button class="btn ghost" onclick="filterCategory('beds')">Beds</button>
+            <button class="btn ghost" onclick="filterCategory('accessories')">Accessories</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" id="productGrid"></div>
+    </section>
+
+    <aside>
+      <div class="cart" id="cartPanel">
+        <h3>Your Cart</h3>
+        <div id="cartItems"><div style="color:var(--muted)">Cart is empty — add items!</div></div>
+        <div class="total"><div>Total</div><div id="cartTotal">₹0.00</div></div>
+        <button class="btn" id="checkoutBtn" style="width:100%;margin-top:12px">Checkout</button>
+      </div>
+    </aside>
+  </main>
+
+  <footer>Made for learning — change products, images, and pricing as needed.</footer>
+
+  <script>
+    const PRODUCTS = [
+      {id:1,name:'Feather Wand Toy',price:249,category:'toys',img:'https://images.unsplash.com/photo-1543852786-1cf6624b9987?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=1'},
+      {id:2,name:'Organic Cat Food (1 kg)',price:499,category:'food',img:'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=2'},
+      {id:3,name:'Cozy Cat Bed',price:1299,category:'beds',img:'https://images.unsplash.com/photo-1560869485-40b8a6bd9b0b?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=3'},
+      {id:4,name:'Catnip Pouch',price:199,category:'toys',img:'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=4'},
+      {id:5,name:'Sisal Scratching Post',price:899,category:'accessories',img:'https://images.unsplash.com/photo-1583511655929-5c9a5f3b3f7b?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=5'},
+      {id:6,name:'Wet Food Variety Pack',price:349,category:'food',img:'https://images.unsplash.com/photo-1605475127883-7a3c8f0c8f6d?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=6'},
+      {id:7,name:'Interactive Laser Toy',price:599,category:'toys',img:'https://images.unsplash.com/photo-1543852786-1cf6624b9987?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=7'},
+      {id:8,name:'Collar & Bell',price:249,category:'accessories',img:'https://images.unsplash.com/photo-1525253086316-d0c936c814f8?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=8'}
+    ];
+
+    const productGrid = document.getElementById('productGrid');
+    const cartItemsDiv = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const cartCountEl = document.getElementById('cartCount');
+    const searchInput = document.getElementById('searchInput');
+
+    let CART = {};
+
+    function formatCurrency(n){ return '₹' + n.toFixed(2); }
+
+    function renderProducts(list = PRODUCTS){
+      productGrid.innerHTML = '';
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `\n          <img src="${p.img}" alt="${p.name}" onerror="this.style.opacity=0.9"/>\n          <div class=\"meta\">\n            <div style=\"font-weight:700\">${p.name}</div>\n            <div class=\"price\">${formatCurrency(p.price)}</div>\n          </div>\n          <div style=\"color:var(--muted);font-size:13px\">Category: ${p.category}</div>\n          <div style=\"display:flex;justify-content:space-between;align-items:center;margin-top:8px\">\n            <div style=\"font-size:13px;color:var(--muted)\">In stock</div>\n            <button class=\"add\" onclick=\"addToCart(${p.id})\">Add</button>\n          </div>\n        `;
+        productGrid.appendChild(card);
+      });
+    }
+
+    function addToCart(id){
+      const p = PRODUCTS.find(x=>x.id===id);
+      if(!p) return;
+      if(!CART[id]) CART[id] = {...p, qty:0};
+      CART[id].qty++;
+      renderCart();
+    }
+
+    function renderCart(){
+      const items = Object.values(CART);
+      cartItemsDiv.innerHTML = '';
+      if(items.length===0){ cartItemsDiv.innerHTML = '<div style="color:var(--muted)">Cart is empty — add items!</div>'; cartTotalEl.textContent = formatCurrency(0); cartCountEl.textContent = 0; return; }
+      let total = 0;
+      items.forEach(it => {
+        total += it.price * it.qty;
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.innerHTML = `\n          <div style=\"flex:1\">\n            <div style=\"font-weight:700\">${it.name}</div>\n            <div style=\"font-size:13px;color:var(--muted)\">${formatCurrency(it.price)} x ${it.qty} = ${formatCurrency(it.price*it.qty)}</div>\n          </div>\n          <div style=\"display:flex;gap:6px;align-items:center\">\n            <button onclick=\"decrease(${it.id})\">-</button>\n            <div style=\"min-width:28px;text-align:center\">${it.qty}</div>\n            <button onclick=\"increase(${it.id})\">+</button>\n            <button style=\"margin-left:6px;border:none;background:transparent;cursor:pointer;color:#ef4444\" onclick=\"removeItem(${it.id})\">✕</button>\n          </div>\n        `;
+        cartItemsDiv.appendChild(line);
+      });
+      cartTotalEl.textContent = formatCurrency(total);
+      cartCountEl.textContent = items.reduce((s,i)=>s+i.qty,0);
+    }
+
+    function increase(id){ CART[id].qty++; renderCart(); }
+    function decrease(id){ CART[id].qty--; if(CART[id].qty<=0) delete CART[id]; renderCart(); }
+    function removeItem(id){ delete CART[id]; renderCart(); }
+
+    function filterCategory(cat){ if(cat==='all') return renderProducts(PRODUCTS); renderProducts(PRODUCTS.filter(p=>p.category===cat)); }
+
+    searchInput.addEventListener('input', ()=>{ const q = searchInput.value.trim().toLowerCase(); if(q==='') return renderProducts(PRODUCTS); renderProducts(PRODUCTS.filter(p=>p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))); });
+
+    document.getElementById('checkoutBtn').addEventListener('click', ()=>{ const items = Object.values(CART); if(items.length===0){ alert('Cart is empty. Add items first.'); return; } const total = items.reduce((s,i)=>s+i.price*i.qty,0); alert('Demo checkout — total: ' + formatCurrency(total) + '\n\nIntegrate a payment gateway to accept payments.'); });
+
+    document.getElementById('viewCartBtn').addEventListener('click', ()=>{ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); });
+    
+    renderProducts(); renderCart();
+
+    // expose helpers
+    window.addToCart = addToCart; window.increase = increase; window.decrease = decrease; window.removeItem = removeItem; window.filterCategory = filterCategory;
+  </script>
+</body>
+</html>
+
